@@ -29,19 +29,19 @@ jobs:
 
     - name: Create debpkg for ndk
       run: |
-        mkdir -p debpkg/usr/lib/nginx/modules/
-        cp nginx-1.21.3/objs/ndk_http_module.so debpkg/usr/lib/nginx/modules/
+        mkdir -p debpkg-ndk/usr/lib/nginx/modules/
+        cp nginx-1.21.3/objs/ndk_http_module.so debpkg-ndk/usr/lib/nginx/modules/
 
     - name: Create debpkg for cbor
       run: |
-        mkdir -p debpkg/usr/lib/nginx/modules/
-        cp nginx-1.21.3/objs/ngx_http_cbor_input_module.so debpkg/usr/lib/nginx/modules/
+        mkdir -p debpkg-cbor-input/usr/lib/nginx/modules/
+        cp nginx-1.21.3/objs/ngx_http_cbor_input_module.so debpkg-cbor-input/usr/lib/nginx/modules/
 
     - name: Create deb for ndk 
       uses: jiro4989/build-deb-action@v2
       with:
         package: libnginx-mod-http-ndk
-        package_root: debpkg
+        package_root: debpkg-ndk
         maintainer: max@dfinity.org
         version: 0.3.1
         arch: 'amd64'
@@ -52,7 +52,7 @@ jobs:
       uses: jiro4989/build-deb-action@v2
       with:
         package: libnginx-mod-http-cbor-input
-        package_root: debpkg
+        package_root: debpkg-cbor-input
         maintainer: max@dfinity.org
         version: ${{ github.ref }} # refs/tags/v*.*.*
         arch: 'amd64'
