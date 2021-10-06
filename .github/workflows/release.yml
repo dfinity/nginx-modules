@@ -31,6 +31,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/nginx-1.21.3/objs/ngx_http_cbor_input_module.so
+        file: nginx-1.21.3/objs/ngx_http_cbor_input_module.so
         asset_name: ngx_http_cbor_input_module.so
         tag: ${{ github.ref }}
