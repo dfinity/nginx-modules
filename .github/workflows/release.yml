@@ -27,12 +27,28 @@ jobs:
         ./configure --with-compat --add-dynamic-module=../ngx_devel_kit --add-dynamic-module=../
         make modules
 
-    - name: Create debpkg
+    - name: Create debpkg for ndk
+      run: |
+        mkdir -p debpkg/usr/lib/nginx/modules/
+        cp nginx-1.21.3/objs/ndk_http_module.so debpkg/usr/lib/nginx/modules/
+
+    - name: Create debpkg for cbor
       run: |
         mkdir -p debpkg/usr/lib/nginx/modules/
         cp nginx-1.21.3/objs/ngx_http_cbor_input_module.so debpkg/usr/lib/nginx/modules/
 
-    - name: Create deb
+    - name: Create deb for ndk 
+      uses: jiro4989/build-deb-action@v2
+      with:
+        package: libnginx-mod-http-ndk
+        package_root: debpkg
+        maintainer: max@dfinity.org
+        version: 0.3.1
+        arch: 'amd64'
+        depends: 'libc6 (>= 2.2.1)'
+        desc: 'Nginx development kit (NDK)'
+
+    - name: Create deb for cbor
       uses: jiro4989/build-deb-action@v2
       with:
         package: libnginx-mod-http-cbor-input
@@ -43,7 +59,7 @@ jobs:
         depends: 'libc6 (>= 2.2.1), libnginx-mod-http-ndk'
         desc: 'Nginx module for decoding CBOR input'
 
-    - name: Upload deb to release
+    - name: Upload debs to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
