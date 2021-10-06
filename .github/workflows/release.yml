@@ -24,7 +24,7 @@ jobs:
       shell: bash
       run: |
         cd nginx-1.21.3
-        ./configure --with-compat --add-dynamic-module=../ngx_devel_kit --add-dynamic-module=../../
+        ./configure --with-compat --add-dynamic-module=../ngx_devel_kit --add-dynamic-module=../
         make modules
 
     - name: Upload binaries to release
