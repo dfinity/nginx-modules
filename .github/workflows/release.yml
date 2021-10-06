@@ -18,7 +18,7 @@ jobs:
       shell: bash
       run: |
         curl https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
-        git clone git@github.com:vision5/ngx_devel_kit.git
+        git clone https://github.com/vision5/ngx_devel_kit.git
 
     - name: Build module so file
       shell: bash
