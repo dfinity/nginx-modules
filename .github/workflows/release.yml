@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Release binary
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        curl https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
+        git clone git@github.com:vision5/ngx_devel_kit.git
+
+    - name: Build module so file
+      shell: bash
+      run: |
+        cd nginx-1.21.3
+        ./configure --with-compat --add-dynamic-module=../ngx_devel_kit --add-dynamic-module=../../
+        make modules
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: build/nginx-1.21.3/objs/ngx_http_cbor_input_module.so
+        asset_name: ngx_http_cbor_input_module.so
+        tag: ${{ github.ref }}
