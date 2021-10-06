@@ -27,12 +27,12 @@ jobs:
         ./configure --with-compat --add-dynamic-module=../ngx_devel_kit --add-dynamic-module=../
         make modules
 
-    - name: create debpkg
+    - name: Create debpkg
       run: |
         mkdir -p debpkg/usr/lib/nginx/modules/
         cp nginx-1.21.3/objs/ngx_http_cbor_input_module.so debpkg/usr/lib/nginx/modules/
 
-    - name: Upload deb
+    - name: Create deb
       uses: jiro4989/build-deb-action@v2
       with:
         package: libnginx-mod-http-cbor-input
@@ -42,3 +42,12 @@ jobs:
         arch: 'amd64'
         depends: 'libc6 (>= 2.2.1), libnginx-mod-http-ndk'
         desc: 'Nginx module for decoding CBOR input'
+
+    - name: Upload deb to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./*.deb
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
