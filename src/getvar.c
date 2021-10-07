@@ -27,6 +27,10 @@ bool foundit(cb0r_t in, uint32_t skip, char* name, size_t name_len) {
 // skip == number of CBOR items to skip.
 // sought == the string key we are looking for.
 cb0r_s get_root(cb0r_t in, uint32_t skip) {
+  // Skip magic bytes, if present:
+  if ((in->end - in->start > 3) && (*(in->start) == 0xD9) && (*(in->start+1) == 0xD9) && (*(in->start+2) == 0xF7)) {
+     in->start += 3;
+  }
   cb0r_s res = {0,};
   cb0r(in->start+in->header,in->end,skip,&res);
   return res;
