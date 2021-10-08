@@ -194,12 +194,13 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
         last = b->last;
     }
 
-    // How to allocate memory for the correct lifetime?  Put it in the struct?
-    // Do we need to parse ints or just strings?  If only strings, life is easy.
+    // Get the relevant values from the CBOR.
+    // ... skip any magic bytes at the beinning, if present.
     cb0r_s root = get_root(&(cb0r_s){.type = CB0R_DATA, .start = buf, .end = last, .length = (last - buf)}, 0);
+    // ... the root should be a map with "content" as a key.
     cb0r_s content = get_str_key(&root, 0, "content");
     if (content.type == CB0R_MAP) {
-	    ngx_log_stderr(0, "Measuring out len...");
+	    ngx_log_stderr(NGX_LOG_DEBUG_HTTP, "Measuring out len...");
 	    size_t total_len = 0;
 	    // Look for all the parts:
 	    // ... request_type
@@ -207,6 +208,7 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
 	    if (part_request_type.type == CB0R_UTF8) {
 	        total_len += cbor_str_size(part_request_type);
 	    } else {
+                ngx_log_stderr(NGX_LOG_WARN, "CBOR .content.request_type absent or has incorrect type: %s", cbor_e_names[part_request_type.type]);
                 return NGX_DECLINED;
 	    }
 	    //   ... delimiter
@@ -216,6 +218,7 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
 	    if (part_sender.type == CB0R_BYTE) {
 	        total_len += cbor_str_size(part_sender);
 	    } else {
+                ngx_log_stderr(NGX_LOG_WARN, "CBOR .content.sender absent or has incorrect type: %s", cbor_e_names[part_sender.type]);
                 return NGX_DECLINED;
 	    }
 	    //   ... delimiter
@@ -225,6 +228,7 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
 	    if (part_canister_id.type == CB0R_BYTE) {
 	        total_len += cbor_str_size(part_canister_id);
 	    } else {
+                ngx_log_stderr(NGX_LOG_WARN, "CBOR .content.canister_id absent or has incorrect type: %s", cbor_e_names[part_canister_id.type]);
                 return NGX_DECLINED;
 	    }
 	    //   ... delimiter
@@ -234,6 +238,7 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
 	    if (part_method_name.type == CB0R_UTF8) {
 	        total_len += cbor_str_size(part_method_name);
 	    } else {
+                ngx_log_stderr(NGX_LOG_WARN, "CBOR .content.method_name absent or has incorrect type: %s", cbor_e_names[part_method_name.type]);
                 return NGX_DECLINED;
 	    }
 	    //   ... delimiter
@@ -243,11 +248,12 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
 	    if (part_arg.type == CB0R_BYTE) {
 	        total_len += cbor_str_size(part_arg);
 	    } else {
+                ngx_log_stderr(NGX_LOG_WARN, "CBOR .content.arg absent or has incorrect type: %s", cbor_e_names[part_arg.type]);
                 return NGX_DECLINED;
 	    }
 
 	    
-	    ngx_log_stderr(0, "Total out len: %d", total_len);
+	    ngx_log_stderr(NGX_LOG_DEBUG_HTTP, "Total out len: %d", total_len);
 
 	    // Stringify all
 	    u_char * strbuf = ngx_palloc(r->pool, total_len);
@@ -268,10 +274,11 @@ ngx_http_cbor_input_arg(ngx_http_request_t *r, u_char *arg_name, size_t arg_len,
 	    writer = stringify_cbor(part_arg, writer);
 
 	    // Return the string
-	       value->data = strbuf;
-               value->len = total_len;
+	    value->data = strbuf;
+            value->len = total_len;
     } else {
-       ngx_str_set(value, "Could not find content");
+       ngx_log_stderr(NGX_LOG_WARN, "CBOR .content absent or has incorrect type: %s", cbor_e_names[content.type]);
+       return NGX_DECLINED;
     }
 
     return NGX_OK;

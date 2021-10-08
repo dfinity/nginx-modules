@@ -61,6 +61,42 @@ typedef enum {
   CB0R_EMAX
 } cb0r_e;
 
+static const char * const cbor_e_names[] = {
+  [CB0R_INT] = "CB0R_INT",
+  [CB0R_NEG] = "CB0R_NEG",
+  [CB0R_BYTE] = "CB0R_BYTE",
+  [CB0R_UTF8] = "CB0R_UTF8",
+  [CB0R_ARRAY] = "CB0R_ARRAY",
+  [CB0R_MAP] = "CB0R_MAP",
+  [CB0R_TAG] = "CB0R_TAG",
+  [CB0R_SIMPLE] = "CB0R_SIMPLE",
+
+  [CB0R_TAGS] = "CB0R_TAGS",
+  [CB0R_DATETIME] = "CB0R_DATETIME",
+  [CB0R_EPOCH] = "CB0R_EPOCH",
+  [CB0R_BIGNUM] = "CB0R_BIGNUM",
+  [CB0R_BIGNEG] = "CB0R_BIGNEG",
+  [CB0R_FRACTION] = "CB0R_FRACTION",
+  [CB0R_BIGFLOAT] = "CB0R_BIGFLOAT",
+  [CB0R_BASE64URL] = "CB0R_BASE64URL",
+  [CB0R_BASE64] = "CB0R_BASE64",
+  [CB0R_HEX] = "CB0R_HEX",
+  [CB0R_DATA] = "CB0R_DATA",
+
+  [CB0R_SIMPLES] = "CB0R_SIMPLES",
+  [CB0R_FALSE] = "CB0R_FALSE",
+  [CB0R_TRUE] = "CB0R_TRUE",
+  [CB0R_NULL] = "CB0R_NULL",
+  [CB0R_UNDEF] = "CB0R_UNDEF",
+  [CB0R_FLOAT] = "CB0R_FLOAT",
+
+  [CB0R_ERR] = "CB0R_ERR",
+  [CB0R_EPARSE] = "CB0R_EPARSE",
+  [CB0R_EBAD] = "CB0R_EBAD",
+  [CB0R_EBIG] = "CB0R_EBIG",
+  [CB0R_EMAX] = "CB0R_EMAX",
+};
+
 // this struct is for representing parsed data only and retains pointers to the original bytes, it's not designed for composing types from scratch
 typedef struct cb0r_s
 {
