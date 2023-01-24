@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build:
@@ -12,58 +12,93 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-    - uses: actions/checkout@master
+      - uses: actions/checkout@master
 
-    - name: Install dependencies
-      shell: bash
-      run: |
-        curl https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
-        git clone https://github.com/vision5/ngx_devel_kit.git
+      - name: Install dependencies
+        shell: bash
+        run: |
+          curl https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
+          git clone https://github.com/vision5/ngx_devel_kit.git
 
-    - name: Build module so file
-      shell: bash
-      run: |
-        cd nginx-1.21.3
-        ./configure --with-compat --add-dynamic-module=../ngx_devel_kit --add-dynamic-module=../
-        make modules
+      - name: Build module so file
+        shell: bash
+        run: |
+          cd nginx-1.21.3
+          ./configure --with-compat \
+            --add-dynamic-module=../ngx_devel_kit \
+            --add-dynamic-module=../modules/ngx_http_cbor_input_module \
+            --add-dynamic-module=../modules/ngx_http_cbor_ic_modules
+          make modules
 
-    - name: Create debpkg for ndk
-      run: |
-        mkdir -p debpkg-ndk/usr/lib/nginx/modules/
-        cp nginx-1.21.3/objs/ndk_http_module.so debpkg-ndk/usr/lib/nginx/modules/
+      - name: Create debpkg for ndk
+        run: |
+          mkdir -p debpkg-ndk/usr/lib/nginx/modules/
+          cp nginx-1.21.3/objs/ndk_http_module.so debpkg-ndk/usr/lib/nginx/modules/
 
-    - name: Create debpkg for cbor
-      run: |
-        mkdir -p debpkg-cbor-input/usr/lib/nginx/modules/
-        cp nginx-1.21.3/objs/ngx_http_cbor_input_module.so debpkg-cbor-input/usr/lib/nginx/modules/
+      - name: Create debpkg for cbor-input
+        run: |
+          mkdir -p debpkg-cbor-input/usr/lib/nginx/modules/
+          cp nginx-1.21.3/objs/ngx_http_cbor_input_module.so debpkg-cbor-input/usr/lib/nginx/modules/
 
-    - name: Create deb for ndk 
-      uses: jiro4989/build-deb-action@v2
-      with:
-        package: libnginx-mod-http-ndk
-        package_root: debpkg-ndk
-        maintainer: max@dfinity.org
-        version: 0.3.1
-        arch: 'amd64'
-        depends: 'libc6 (>= 2.2.1)'
-        desc: 'Nginx development kit (NDK)'
+      - name: Create debpkg for cbor-req-ic
+        run: |
+          mkdir -p debpkg-cbor-req-ic/usr/lib/nginx/modules/
+          cp nginx-1.21.3/objs/ngx_http_cbor_req_ic_module.so debpkg-cbor-req-ic/usr/lib/nginx/modules/
 
-    - name: Create deb for cbor
-      uses: jiro4989/build-deb-action@v2
-      with:
-        package: libnginx-mod-http-cbor-input
-        package_root: debpkg-cbor-input
-        maintainer: max@dfinity.org
-        version: ${{ github.ref }} # refs/tags/v*.*.*
-        arch: 'amd64'
-        depends: 'libc6 (>= 2.2.1), libnginx-mod-http-ndk'
-        desc: 'Nginx module for decoding CBOR input'
+      - name: Create debpkg for cbor-resp-ic
+        run: |
+          mkdir -p debpkg-cbor-resp-ic/usr/lib/nginx/modules/
+          cp nginx-1.21.3/objs/ngx_http_cbor_resp_ic_module.so debpkg-cbor-resp-ic/usr/lib/nginx/modules/
 
-    - name: Upload debs to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./*.deb
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+      - name: Create deb for ndk
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: libnginx-mod-http-ndk
+          package_root: debpkg-ndk
+          maintainer: max@dfinity.org
+          version: 0.3.1
+          arch: "amd64"
+          depends: "libc6 (>= 2.2.1)"
+          desc: "Nginx development kit (NDK)"
+
+      - name: Create deb for cbor-input
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: libnginx-mod-http-cbor-input
+          package_root: debpkg-cbor-input
+          maintainer: max@dfinity.org
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          arch: "amd64"
+          depends: "libc6 (>= 2.2.1), libnginx-mod-http-ndk"
+          desc: "Nginx module for decoding CBOR input"
+
+      - name: Create deb for cbor-req-ic
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: libnginx-mod-http-cbor-req-ic
+          package_root: debpkg-cbor-req-ic
+          maintainer: or-ricon@dfinity.org
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          arch: "amd64"
+          depends: "libc6 (>= 2.2.1)"
+          desc: "Nginx module for decoding IC CBOR requests"
+
+      - name: Create deb for cbor-resp-ic
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: libnginx-mod-http-cbor-resp-ic
+          package_root: debpkg-cbor-resp-ic
+          maintainer: or-ricon@dfinity.org
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          arch: "amd64"
+          depends: "libc6 (>= 2.2.1)"
+          desc: "Nginx module for decoding IC CBOR responses"
+
+      - name: Upload debs to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./*.deb
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
