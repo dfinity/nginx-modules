@@ -18,6 +18,6 @@ typedef enum
 
 parse_result_t parse_str(cb0r_t in, uint skip, ngx_str_t *s);
 parse_result_t parse_int(cb0r_t in, uint skip, ngx_int_t *i);
-cb0r_s get_key(cb0r_t r, u_char *key);
+cb0r_s get_key(cb0r_t r, char *key);
 
 #endif // IC_H

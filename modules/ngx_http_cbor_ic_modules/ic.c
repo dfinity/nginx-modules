@@ -54,7 +54,7 @@ parse_result_t parse_int(cb0r_t in, uint skip, ngx_int_t *i)
     return PARSE_OK;
 }
 
-cb0r_s get_key(cb0r_t r, u_char *key)
+cb0r_s get_key(cb0r_t r, char *key)
 {
     if (r->type != CB0R_MAP)
     {
@@ -75,13 +75,13 @@ cb0r_s get_key(cb0r_t r, u_char *key)
     }
 
     // Search for key
-    for (int i = 0; i < r->count; i += 2)
+    for (uint64_t i = 0; i < r->count; i += 2)
     {
         ngx_str_t k;
         if (parse_str(r, i, &k) != PARSE_OK)
             continue;
 
-        if (strncmp(key, k.data, k.len) != 0)
+        if (strncmp(key, (char *)k.data, k.len) != 0)
             continue;
 
         cb0r_s out = {0};

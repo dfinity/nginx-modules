@@ -212,6 +212,7 @@ l_finish: // only first 7 types
         case CB0R_INT:
         case CB0R_NEG:
             size = end - (start + 1);
+            __attribute__((fallthrough));
         case CB0R_TAG:
         {
             switch (size)
@@ -221,11 +222,14 @@ l_finish: // only first 7 types
                 result->value |= (uint64_t)(start[size - 6]) << 48;
                 result->value |= (uint64_t)(start[size - 5]) << 40;
                 result->value |= (uint64_t)(start[size - 4]) << 32;
+                __attribute__((fallthrough));
             case 4:
                 result->value |= (uint32_t)(start[size - 3]) << 24;
                 result->value |= (uint32_t)(start[size - 2]) << 16;
+                __attribute__((fallthrough));
             case 2:
                 result->value |= (uint32_t)(start[size - 1]) << 8;
+                __attribute__((fallthrough));
             case 1:
                 result->value |= start[size];
                 break;
