@@ -10,17 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+    defaults:
+      run:
+        shell: bash -euxo pipefail {0}
     steps:
       - uses: actions/checkout@master
 
       - name: Install dependencies
-        shell: bash
         run: |
           curl -sLv --retry 5 https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
           git clone https://github.com/vision5/ngx_devel_kit.git
 
       - name: Build module so file
-        shell: bash
         run: |
           cd nginx-1.21.3
           ./configure --with-compat \
