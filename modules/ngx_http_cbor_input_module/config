@@ -14,8 +14,8 @@ else
     fi
 fi
 
-HTTP_FORM_INPUT_SRCS="$ngx_addon_dir/src/cb0r.c $ngx_addon_dir/src/getvar.c $ngx_addon_dir/src/stringify.c $ngx_addon_dir/src/ngx_http_cbor_input_module.c"
-HTTP_FORM_INPUT_DEPS="$ngx_addon_dir/src/ddebug.h $ngx_addon_dir/src/cb0r.h $ngx_addon_dir/src/getvar.h $ngx_addon_dir/src/stringify.h"
+HTTP_FORM_INPUT_SRCS="$ngx_addon_dir/cb0r.c $ngx_addon_dir/getvar.c $ngx_addon_dir/stringify.c $ngx_addon_dir/ngx_http_cbor_input_module.c"
+HTTP_FORM_INPUT_DEPS="$ngx_addon_dir/ddebug.h $ngx_addon_dir/cb0r.h $ngx_addon_dir/getvar.h $ngx_addon_dir/stringify.h"
 
 ngx_addon_name=ngx_http_cbor_input_module
 

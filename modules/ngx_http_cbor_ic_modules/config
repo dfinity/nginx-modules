@@ -1,0 +1,21 @@
+SRCS="$ngx_addon_dir/ngx_http_cbor_req_ic_module.c $ngx_addon_dir/ngx_http_cbor_resp_ic_module.c $ngx_addon_dir/cb0r.c $ngx_addon_dir/ic.c"
+DEPS="$ngx_addon_dir/cb0r.h $ngx_addon_dir/ic.h"
+
+if test -n "$ngx_module_link"; then
+    ngx_module_type=HTTP
+    ngx_module_name=ngx_http_cbor_req_ic_module
+    ngx_module_srcs="$SRCS"
+    ngx_module_deps="$DEPS"
+    . auto/module
+
+    ngx_module_type=HTTP_AUX_FILTER
+    ngx_module_name=ngx_http_cbor_resp_ic_module
+    ngx_module_srcs="$SRCS"
+    ngx_module_deps="$DEPS"
+    . auto/module
+else
+    HTTP_MODULES="$HTTP_MODULES ngx_http_cbor_req_ic_module"
+    HTTP_AUX_FILTER_MODULES="$HTTP_AUX_FILTER_MODULES ngx_http_cbor_resp_ic_module"
+    NGX_ADDON_SRCS="$NGX_ADDON_SRCS $SRCS"
+    NGX_ADDON_DEPS="$NGX_ADDON_DEPS $DEPS"
+fi
