@@ -4,6 +4,9 @@
 #include "cb0r.h"
 #include "ic.h"
 
+#define KB 1024
+#define MAX_BODY_SIZE 16 * KB // Limit maximum body size to read
+
 typedef struct
 {
     ngx_str_t status;
@@ -153,8 +156,8 @@ typedef enum
 {
     CONSUME_OK = 0,
     CONSUME_ERR,
-    CONSUME_EINFILE,
     CONSUME_EEMPTY,
+    CONSUME_ELARGE,
 } consume_result_t;
 
 static consume_result_t
@@ -163,6 +166,14 @@ consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
     // Skip empty buffers
     if (ngx_buf_size(bufs->buf) == 0)
         return CONSUME_EEMPTY;
+
+    // Check content-length
+    size_t len = 0;
+    for (ngx_chain_t *c = bufs; c; c = c->next)
+        len += ngx_buf_size(c->buf);
+
+    if (len > MAX_BODY_SIZE)
+        return CONSUME_ELARGE;
 
     // Case 1 - Single buffer
     if (bufs->next == NULL)
@@ -175,11 +186,6 @@ consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
     }
 
     // Case 2 - Multiple buffers
-    // Get content-length
-    size_t len = 0;
-    for (ngx_chain_t *c = bufs; c; c = c->next)
-        len += ngx_buf_size(c->buf);
-
     u_char *b = ngx_palloc(p, len);
     if (b == NULL)
         return CONSUME_ERR;
