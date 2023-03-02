@@ -54,7 +54,7 @@ parse_result_t parse_int(cb0r_t in, uint skip, ngx_int_t *i)
     return PARSE_OK;
 }
 
-cb0r_s get_key(cb0r_t r, char *key)
+cb0r_s get_map_key(cb0r_t r, char *key)
 {
     if (r->type != CB0R_MAP)
     {

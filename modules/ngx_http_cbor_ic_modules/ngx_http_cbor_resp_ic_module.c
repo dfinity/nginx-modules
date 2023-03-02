@@ -103,7 +103,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     );
 
     // Status
-    cb0r_s status_c = get_key(&root, "status");
+    cb0r_s status_c = get_map_key(&root, "status");
     if (status_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
@@ -114,7 +114,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     ctx->status = status;
 
     // Error code
-    cb0r_s error_code_c = get_key(&root, "error_code");
+    cb0r_s error_code_c = get_map_key(&root, "error_code");
     if (error_code_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
@@ -125,7 +125,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     ctx->error_code = error_code;
 
     // Reject code
-    cb0r_s reject_code_c = get_key(&root, "reject_code");
+    cb0r_s reject_code_c = get_map_key(&root, "reject_code");
     if (reject_code_c.type != CB0R_INT)
         return PROCESS_ERR;
 
@@ -136,7 +136,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     ctx->reject_code = reject_code;
 
     // Reject message
-    cb0r_s reject_message_c = get_key(&root, "reject_message");
+    cb0r_s reject_message_c = get_map_key(&root, "reject_message");
     if (reject_message_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
