@@ -160,10 +160,6 @@ typedef enum
 static consume_result_t
 consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
 {
-    // Skip in-file buffers
-    if (bufs->buf->in_file)
-        return CONSUME_EINFILE;
-
     // Skip empty buffers
     if (ngx_buf_size(bufs->buf) == 0)
         return CONSUME_EEMPTY;
