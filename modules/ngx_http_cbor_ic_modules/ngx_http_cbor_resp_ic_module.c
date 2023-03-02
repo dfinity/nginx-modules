@@ -4,6 +4,9 @@
 #include "cb0r.h"
 #include "ic.h"
 
+#define KB 1024
+#define MAX_BODY_SIZE 16 * KB // Limit maximum body size to read
+
 typedef struct
 {
     ngx_str_t status;
@@ -103,7 +106,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     );
 
     // Status
-    cb0r_s status_c = get_key(&root, "status");
+    cb0r_s status_c = get_map_key(&root, "status");
     if (status_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
@@ -114,7 +117,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     ctx->status = status;
 
     // Error code
-    cb0r_s error_code_c = get_key(&root, "error_code");
+    cb0r_s error_code_c = get_map_key(&root, "error_code");
     if (error_code_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
@@ -125,7 +128,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     ctx->error_code = error_code;
 
     // Reject code
-    cb0r_s reject_code_c = get_key(&root, "reject_code");
+    cb0r_s reject_code_c = get_map_key(&root, "reject_code");
     if (reject_code_c.type != CB0R_INT)
         return PROCESS_ERR;
 
@@ -136,7 +139,7 @@ process_body(buf_t b, ngx_http_cbor_resp_ic_ctx_t *ctx)
     ctx->reject_code = reject_code;
 
     // Reject message
-    cb0r_s reject_message_c = get_key(&root, "reject_message");
+    cb0r_s reject_message_c = get_map_key(&root, "reject_message");
     if (reject_message_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
@@ -153,20 +156,24 @@ typedef enum
 {
     CONSUME_OK = 0,
     CONSUME_ERR,
-    CONSUME_EINFILE,
     CONSUME_EEMPTY,
+    CONSUME_ELARGE,
 } consume_result_t;
 
 static consume_result_t
 consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
 {
-    // Skip in-file buffers
-    if (bufs->buf->in_file)
-        return CONSUME_EINFILE;
-
     // Skip empty buffers
     if (ngx_buf_size(bufs->buf) == 0)
         return CONSUME_EEMPTY;
+
+    // Check content-length
+    size_t len = 0;
+    for (ngx_chain_t *c = bufs; c; c = c->next)
+        len += ngx_buf_size(c->buf);
+
+    if (len > MAX_BODY_SIZE)
+        return CONSUME_ELARGE;
 
     // Case 1 - Single buffer
     if (bufs->next == NULL)
@@ -179,11 +186,6 @@ consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
     }
 
     // Case 2 - Multiple buffers
-    // Get content-length
-    size_t len = 0;
-    for (ngx_chain_t *c = bufs; c; c = c->next)
-        len += ngx_buf_size(c->buf);
-
     u_char *b = ngx_palloc(p, len);
     if (b == NULL)
         return CONSUME_ERR;

@@ -100,12 +100,12 @@ process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx)
     );
 
     // Content
-    cb0r_s content = get_key(&root, "content");
+    cb0r_s content = get_map_key(&root, "content");
     if (content.type != CB0R_MAP)
         return PROCESS_ERR;
 
     // Request type
-    cb0r_s request_type_c = get_key(&content, "request_type");
+    cb0r_s request_type_c = get_map_key(&content, "request_type");
     if (request_type_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
@@ -116,7 +116,7 @@ process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx)
     ctx->request_type = request_type;
 
     // Method name
-    cb0r_s method_name_c = get_key(&content, "method_name");
+    cb0r_s method_name_c = get_map_key(&content, "method_name");
     if (method_name_c.type != CB0R_UTF8)
         return PROCESS_ERR;
 
