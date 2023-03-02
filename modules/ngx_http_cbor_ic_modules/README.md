@@ -8,6 +8,10 @@ It is assumed that the bodies being decoded are based on the CBOR schemas descri
 
 ## ngx_http_cbor_req_ic_module
 
+This module will attempt to parse a CBOR-encoded request body and extract several pre-defined fields from it.
+
+_*Caveat*_: The module skips processing bodies that are not stored in memory. Whether a request body is kept in memory or not can be controlled via [client_body_buffer_size](http://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_buffer_size).
+
 Usage:
 
 ```conf
@@ -22,6 +26,10 @@ Variables:
 ---
 
 ## ngx_http_cbor_resp_ic_module
+
+This module will attempt to parse a CBOR-encoded response body and extract several pre-defined fields from it.
+
+_*Caveat*_: The module skips processing bodies that exceed a given size (currently hardcoded at 16kb).
 
 Usage:
 
