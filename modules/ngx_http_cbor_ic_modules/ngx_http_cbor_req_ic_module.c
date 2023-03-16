@@ -140,6 +140,10 @@ typedef enum
 static consume_result_t
 consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
 {
+    // Skip when no body is present
+    if (bufs == NULL || bufs->buf == NULL)
+        return CONSUME_EEMPTY;
+
     // Skip in-file buffers
     if (bufs->buf->in_file)
         return CONSUME_EINFILE;
