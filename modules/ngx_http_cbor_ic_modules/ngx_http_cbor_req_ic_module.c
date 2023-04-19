@@ -299,7 +299,7 @@ static ngx_int_t
 ngx_http_cbor_req_ic_cbor_ic_request_type(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_cbor_req_ic_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_cbor_req_ic_module);
-    if (ctx == NULL || ctx->request_type.len == 0)
+    if (ctx == NULL)
     {
         v->not_found = 1;
         return NGX_OK;
@@ -319,7 +319,7 @@ static ngx_int_t
 ngx_http_cbor_req_ic_cbor_ic_sender(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_cbor_req_ic_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_cbor_req_ic_module);
-    if (ctx == NULL || ctx->sender.len == 0)
+    if (ctx == NULL)
     {
         v->not_found = 1;
         return NGX_OK;
@@ -339,7 +339,7 @@ static ngx_int_t
 ngx_http_cbor_req_ic_cbor_ic_method_name(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_cbor_req_ic_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_cbor_req_ic_module);
-    if (ctx == NULL || ctx->method_name.len == 0)
+    if (ctx == NULL)
     {
         v->not_found = 1;
         return NGX_OK;
@@ -359,7 +359,7 @@ static ngx_int_t
 ngx_http_cbor_req_ic_cbor_ic_canister_id(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_cbor_req_ic_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_cbor_req_ic_module);
-    if (ctx == NULL || ctx->canister_id.len == 0)
+    if (ctx == NULL)
     {
         v->not_found = 1;
         return NGX_OK;
