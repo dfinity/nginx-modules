@@ -39,21 +39,18 @@ unsigned int identifier_encode(const unsigned char *input, size_t len, unsigned 
     base32_encode(buf, len + 4, buf_b32);
 
     // Output the base32 string while adding hyphens every 5 chars
-    int i = 0, j = 0, k = 0;
+    int i = 0, j = 0;
     while (buf_b32[i] != 0)
     {
-        if (k == 5)
+        if (i > 0 && (i % 5) == 0)
         {
             output[j] = '-';
             j++;
-            k = 0;
-            continue;
         }
 
         output[j] = buf_b32[i];
         i++;
         j++;
-        k++;
     }
 
     return j;
