@@ -18,10 +18,15 @@ Usage:
 load_module "/etc/nginx/modules/ngx_http_cbor_req_ic_module.so";
 ```
 
-Variables:
+Variables present always:
 
 1. `cbor_req_ic_request_type` - The type of the encapsulated request. E.g `query` or `call`.
-1. `cbor_req_ic_method_name`- The name of the canister method being called.
+1. `cbor_req_ic_sender` - Sender principal ID converted to text form (e.g. `xtqug-aqaae-bagba-faydq-q`)
+
+Variables for all request types except `read_state`:
+
+1. `cbor_req_ic_method_name` - The name of the canister method being called.
+1. `cbor_req_ic_canister_id` - Canister ID converted to text form (e.g. `xtqug-aqaae-bagba-faydq-q`)
 
 ---
 

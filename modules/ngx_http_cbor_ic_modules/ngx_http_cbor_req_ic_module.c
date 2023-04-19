@@ -27,9 +27,9 @@ static ngx_int_t ngx_http_cbor_req_ic_cbor_ic_sender(ngx_http_request_t *r, ngx_
 
 static ngx_http_variable_t ngx_http_cbor_req_ic_vars[] = {
     {ngx_string("cbor_req_ic_request_type"), NULL, ngx_http_cbor_req_ic_cbor_ic_request_type, 0, 0, 0},
+    {ngx_string("cbor_req_ic_sender"), NULL, ngx_http_cbor_req_ic_cbor_ic_sender, 0, 0, 0},
     {ngx_string("cbor_req_ic_method_name"), NULL, ngx_http_cbor_req_ic_cbor_ic_method_name, 0, 0, 0},
     {ngx_string("cbor_req_ic_canister_id"), NULL, ngx_http_cbor_req_ic_cbor_ic_canister_id, 0, 0, 0},
-    {ngx_string("cbor_req_ic_sender"), NULL, ngx_http_cbor_req_ic_cbor_ic_sender, 0, 0, 0},
     ngx_http_null_variable};
 
 static ngx_http_module_t ngx_http_cbor_req_ic_ctx = {
