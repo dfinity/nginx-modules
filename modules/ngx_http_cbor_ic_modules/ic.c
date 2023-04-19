@@ -1,6 +1,6 @@
 #include "ic.h"
 
-parse_result_t parse_str(cb0r_t in, uint skip, ngx_str_t *s)
+parse_result_t parse_str(cb0r_t in, unsigned int skip, ngx_str_t *s)
 {
     if (in->type == CB0R_UTF8)
     {
@@ -28,7 +28,7 @@ parse_result_t parse_str(cb0r_t in, uint skip, ngx_str_t *s)
     return PARSE_OK;
 }
 
-parse_result_t parse_int(cb0r_t in, uint skip, ngx_int_t *i)
+parse_result_t parse_int(cb0r_t in, unsigned int skip, ngx_int_t *i)
 {
     if (in->type == CB0R_INT)
     {
