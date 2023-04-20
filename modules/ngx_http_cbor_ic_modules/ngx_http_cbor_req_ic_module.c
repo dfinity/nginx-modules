@@ -5,8 +5,8 @@
 #include "cb0r.h"
 #include "ic.h"
 #include "identifier.h"
-#include "process_body.h"
 #include "ngx_http_cbor_req_ic_module.h"
+#include "process_body.h"
 
 static ngx_int_t ngx_http_cbor_req_ic_handler(ngx_http_request_t *r);
 static ngx_int_t ngx_http_cbor_req_ic_add_variables(ngx_conf_t *cf);
@@ -51,6 +51,12 @@ ngx_module_t ngx_http_cbor_req_ic_module = {
     NULL,                      /* exit process */
     NULL,                      /* exit master */
     NGX_MODULE_V1_PADDING};
+
+void nullify_str(ngx_str_t *s)
+{
+    s->data = NULL;
+    s->len = 0;
+}
 
 static consume_result_t
 consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
@@ -123,9 +129,13 @@ static ngx_http_cbor_req_ic_ctx_t *mk_ctx(ngx_http_request_t *r)
         // These are dynamically generated from CBOR BLOBs and need to be allocated
         nullify_str(&ctx->canister_id);
         nullify_str(&ctx->sender);
-        if ((ctx->canister_id.data = ngx_pcalloc(r->pool, 64)) == NULL)
+
+        ctx->canister_id.data = ngx_pcalloc(r->pool, 64);
+        if (ctx->canister_id.data == NULL)
             return NULL;
-        if ((ctx->sender.data = ngx_pcalloc(r->pool, 64)) == NULL)
+
+        ctx->sender.data = ngx_pcalloc(r->pool, 64);
+        if (ctx->sender.data == NULL)
             return NULL;
 
         ctx->done = 0;

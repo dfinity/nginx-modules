@@ -1,9 +1,10 @@
-#include "ngx_http_cbor_req_ic_module.h"
+#include <ngx_config.h>
+#include <ngx_core.h>
 
-static void nullify_str(ngx_str_t *s)
+typedef struct
 {
-    s->data = NULL;
-    s->len = 0;
-}
+    unsigned char *start;
+    unsigned char *end;
+} buf_t;
 
 void process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx);

@@ -2,6 +2,7 @@
 #include "ic.h"
 #include "identifier.h"
 #include "ngx_http_cbor_req_ic_module.h"
+#include "process_body.h"
 
 // process_body extracts relevant CBOR fields from the given body
 // and stores them in the context

@@ -1,6 +1,4 @@
-#include "cb0r.h"
-#include "ic.h"
-#include "identifier.h"
+#include <ngx_core.h>
 
 typedef struct
 {
@@ -20,10 +18,4 @@ typedef enum
     CONSUME_EEMPTY,
 } consume_result_t;
 
-typedef struct
-{
-    unsigned char *start;
-    unsigned char *end;
-} buf_t;
-
-void process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx);
+void nullify_str(ngx_str_t *s);
