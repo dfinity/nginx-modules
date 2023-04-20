@@ -1,5 +1,5 @@
-SRCS="$ngx_addon_dir/ngx_http_cbor_req_ic_module.c $ngx_addon_dir/ngx_http_cbor_resp_ic_module.c $ngx_addon_dir/cb0r.c $ngx_addon_dir/ic.c"
-DEPS="$ngx_addon_dir/cb0r.h $ngx_addon_dir/ic.h"
+SRCS="$ngx_addon_dir/ngx_http_cbor_req_ic_module.c $ngx_addon_dir/ngx_http_cbor_resp_ic_module.c $ngx_addon_dir/cb0r.c $ngx_addon_dir/ic.c $ngx_addon_dir/crc32.c $ngx_addon_dir/base32.c $ngx_addon_dir/identifier.c"
+DEPS="$ngx_addon_dir/cb0r.h $ngx_addon_dir/crc32.h $ngx_addon_dir/base32.h $ngx_addon_dir/ic.h $ngx_addon_dir/identifier.h"
 
 if test -n "$ngx_module_link"; then
     ngx_module_type=HTTP

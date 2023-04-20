@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 
 #include "crc32.h"
 #include "base32.h"
@@ -27,7 +26,7 @@ unsigned int identifier_encode(const unsigned char *input, size_t len, unsigned 
     buf[3] = crc & 0xFF;
 
     // Copy the input into buffer
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
     {
         buf[i + 4] = input[i];
     }

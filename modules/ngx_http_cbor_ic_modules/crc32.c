@@ -7,7 +7,7 @@ unsigned int crc32(const unsigned char *message, size_t len)
     unsigned int byte, crc, mask;
 
     crc = 0xFFFFFFFF;
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
     {
         byte = message[i];
         crc = crc ^ byte;

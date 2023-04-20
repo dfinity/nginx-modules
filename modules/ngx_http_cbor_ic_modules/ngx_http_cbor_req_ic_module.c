@@ -5,16 +5,8 @@
 #include "cb0r.h"
 #include "ic.h"
 #include "identifier.h"
-
-typedef struct
-{
-    ngx_str_t request_type;
-    ngx_str_t method_name;
-    ngx_str_t canister_id;
-    ngx_str_t sender;
-
-    u_char done : 1;
-} ngx_http_cbor_req_ic_ctx_t;
+#include "process_body.h"
+#include "ngx_http_cbor_req_ic_module.h"
 
 static ngx_int_t ngx_http_cbor_req_ic_handler(ngx_http_request_t *r);
 static ngx_int_t ngx_http_cbor_req_ic_add_variables(ngx_conf_t *cf);
@@ -59,102 +51,6 @@ ngx_module_t ngx_http_cbor_req_ic_module = {
     NULL,                      /* exit process */
     NULL,                      /* exit master */
     NGX_MODULE_V1_PADDING};
-
-typedef struct
-{
-    u_char *start;
-    u_char *end;
-} buf_t;
-
-// process_body extracts relevant CBOR fields from the given body
-//
-// schema {
-//     "content": {
-//         "request_type": str, // mandatory
-//         "sender": principal, // mandatory
-//         "method_name": str, // optional
-//         "canister_id": principal, // optional
-//     }
-// }
-void process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx)
-{
-    // Skip magic number
-    if ((b.end - b.start) > CBOR_MAGIC_LEN && (b.start[0] == CBOR_MAGIC_0 &&
-                                               b.start[1] == CBOR_MAGIC_1 &&
-                                               b.start[2] == CBOR_MAGIC_2))
-    {
-        b.start += CBOR_MAGIC_LEN;
-    }
-
-    // Root
-    cb0r_s s = {
-        .type = CB0R_DATA,
-        .start = b.start,
-        .end = b.end,
-        .length = b.end - b.start};
-
-    cb0r_s root = {0};
-    cb0r(
-        s.start + s.header, // start
-        s.end,              // stop
-        0,                  // skip
-        &root               // result
-    );
-
-    // Content
-    cb0r_s content = get_map_key(&root, "content");
-    if (content.type != CB0R_MAP)
-        return;
-
-    // Request type
-    cb0r_s request_type_c = get_map_key(&content, "request_type");
-    if (request_type_c.type != CB0R_UTF8)
-        return;
-
-    ngx_str_t request_type;
-    if (parse_str(&request_type_c, 0, &request_type) != PARSE_OK)
-        return;
-
-    ctx->request_type = request_type;
-
-    // Sender
-    cb0r_s sender_c = get_map_key(&content, "sender");
-    if (sender_c.type != CB0R_BYTE)
-        return;
-
-    ctx->sender.len = identifier_encode(cb0r_value(&sender_c), sender_c.length, ctx->sender.data);
-
-    // `read_state` call does not have the other fields, so return here
-    if (strncmp((const char *)request_type.data, "read_state", request_type.len) == 0)
-        return;
-
-    // Method name
-    cb0r_s method_name_c = get_map_key(&content, "method_name");
-    if (method_name_c.type != CB0R_UTF8)
-        return;
-
-    ngx_str_t method_name;
-    if (parse_str(&method_name_c, 0, &method_name) != PARSE_OK)
-        return;
-
-    ctx->method_name = method_name;
-
-    // Canister ID
-    cb0r_s canister_id_c = get_map_key(&content, "canister_id");
-    if (canister_id_c.type != CB0R_BYTE)
-        return;
-
-    ctx->canister_id.len = identifier_encode(cb0r_value(&canister_id_c), canister_id_c.length, ctx->canister_id.data);
-    return;
-}
-
-typedef enum
-{
-    CONSUME_OK = 0,
-    CONSUME_ERR,
-    CONSUME_EINFILE,
-    CONSUME_EEMPTY,
-} consume_result_t;
 
 static consume_result_t
 consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
@@ -207,12 +103,6 @@ consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
     buf->end = b + len;
 
     return CONSUME_OK;
-}
-
-static void nullify_str(ngx_str_t *s)
-{
-    s->data = NULL;
-    s->len = 0;
 }
 
 static ngx_http_cbor_req_ic_ctx_t *mk_ctx(ngx_http_request_t *r)

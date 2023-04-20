@@ -1,4 +1,4 @@
-#ifdef __RUN_TEST
+#ifdef __IC_RUN_TESTS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,4 +91,4 @@ int main()
     test_base32();
     test_identifier_encode();
 }
-#endif
+#endif // __IC_RUN_TESTS
