@@ -21,6 +21,10 @@ jobs:
           curl -sLv --retry 5 https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
           git clone https://github.com/vision5/ngx_devel_kit.git
 
+      - name: Run test
+        run: |
+          make NGINX_SRC=nginx-1.21.3
+
       - name: Build module so file
         run: |
           cd nginx-1.21.3
