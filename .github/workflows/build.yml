@@ -24,7 +24,7 @@ jobs:
       - name: Run test
         run: |
           pushd modules/ngx_http_cbor_ic_modules
-          make NGINX_SRC=nginx-1.21.3
+          make NGINX_SRC=../../nginx-1.21.3
           popd
 
       - name: Build module so file
