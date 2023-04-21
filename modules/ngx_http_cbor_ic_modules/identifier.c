@@ -19,7 +19,7 @@ unsigned int identifier_encode(const unsigned char *input, size_t len, unsigned 
     ZERO(buf);
 
     // Calculate the CRC and add to buffer in big-endian order
-    unsigned int crc = crc32(input, len);
+    unsigned int crc = ic_crc32(input, len);
     buf[0] = (crc >> 24) & 0xFF;
     buf[1] = (crc >> 16) & 0xFF;
     buf[2] = (crc >> 8) & 0xFF;

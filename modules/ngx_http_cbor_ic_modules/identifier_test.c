@@ -23,10 +23,10 @@ char src4[] = {0xab, 0xcd, 0x01};
 
 void test_crc32()
 {
-    unsigned int crc = crc32("123456789", 9);
+    unsigned int crc = ic_crc32("123456789", 9);
     assert(crc == 0xcbf43926);
 
-    crc = crc32("", 0);
+    crc = ic_crc32("", 0);
     assert(crc == 0x0);
 }
 

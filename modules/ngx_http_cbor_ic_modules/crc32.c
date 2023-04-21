@@ -2,15 +2,13 @@
 
 // Short CRC32 implementation without lookup tables
 // For <=29 byte arrays it's fast enough
-unsigned int crc32(const unsigned char *message, size_t len)
+unsigned int ic_crc32(const unsigned char *message, size_t len)
 {
-    unsigned int byte, crc, mask;
+    unsigned int crc = 0xFFFFFFFF, mask = 0;
 
-    crc = 0xFFFFFFFF;
     for (size_t i = 0; i < len; i++)
     {
-        byte = message[i];
-        crc = crc ^ byte;
+        crc ^= message[i];
 
         for (int j = 7; j >= 0; j--)
         {
