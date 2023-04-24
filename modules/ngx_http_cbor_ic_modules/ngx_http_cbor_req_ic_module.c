@@ -1,16 +1,12 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+
 #include "cb0r.h"
 #include "ic.h"
-
-typedef struct
-{
-    ngx_str_t request_type;
-    ngx_str_t method_name;
-
-    u_char done : 1;
-} ngx_http_cbor_req_ic_ctx_t;
+#include "identifier.h"
+#include "ngx_http_cbor_req_ic_module.h"
+#include "process_body.h"
 
 static ngx_int_t ngx_http_cbor_req_ic_handler(ngx_http_request_t *r);
 static ngx_int_t ngx_http_cbor_req_ic_add_variables(ngx_conf_t *cf);
@@ -18,10 +14,14 @@ static ngx_int_t ngx_http_cbor_req_ic_init(ngx_conf_t *cf);
 
 static ngx_int_t ngx_http_cbor_req_ic_cbor_ic_request_type(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data);
 static ngx_int_t ngx_http_cbor_req_ic_cbor_ic_method_name(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data);
+static ngx_int_t ngx_http_cbor_req_ic_cbor_ic_canister_id(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data);
+static ngx_int_t ngx_http_cbor_req_ic_cbor_ic_sender(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data);
 
 static ngx_http_variable_t ngx_http_cbor_req_ic_vars[] = {
     {ngx_string("cbor_req_ic_request_type"), NULL, ngx_http_cbor_req_ic_cbor_ic_request_type, 0, 0, 0},
+    {ngx_string("cbor_req_ic_sender"), NULL, ngx_http_cbor_req_ic_cbor_ic_sender, 0, 0, 0},
     {ngx_string("cbor_req_ic_method_name"), NULL, ngx_http_cbor_req_ic_cbor_ic_method_name, 0, 0, 0},
+    {ngx_string("cbor_req_ic_canister_id"), NULL, ngx_http_cbor_req_ic_cbor_ic_canister_id, 0, 0, 0},
     ngx_http_null_variable};
 
 static ngx_http_module_t ngx_http_cbor_req_ic_ctx = {
@@ -52,90 +52,11 @@ ngx_module_t ngx_http_cbor_req_ic_module = {
     NULL,                      /* exit master */
     NGX_MODULE_V1_PADDING};
 
-typedef struct
+void nullify_str(ngx_str_t *s)
 {
-    u_char *start;
-    u_char *end;
-} buf_t;
-
-typedef enum
-{
-    PROCESS_OK = 0,
-    PROCESS_ERR,
-} process_result_t;
-
-// process_body extracts relevant CBOR fields from the given body
-//
-// schema {
-//     "content": {
-//         "request_type": str,
-//         "method_name": str,
-//         "sender": principal
-//     }
-// }
-static process_result_t
-process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx)
-{
-    // Skip magic number
-    if ((b.end - b.start) > CBOR_MAGIC_LEN && (b.start[0] == CBOR_MAGIC_0 &&
-                                               b.start[1] == CBOR_MAGIC_1 &&
-                                               b.start[2] == CBOR_MAGIC_2))
-    {
-        b.start += CBOR_MAGIC_LEN;
-    }
-
-    // Root
-    cb0r_s s = {
-        .type = CB0R_DATA,
-        .start = b.start,
-        .end = b.end,
-        .length = b.end - b.start};
-
-    cb0r_s root = {0};
-    cb0r(
-        s.start + s.header, // start
-        s.end,              // stop
-        0,                  // skip
-        &root               // result
-    );
-
-    // Content
-    cb0r_s content = get_map_key(&root, "content");
-    if (content.type != CB0R_MAP)
-        return PROCESS_ERR;
-
-    // Request type
-    cb0r_s request_type_c = get_map_key(&content, "request_type");
-    if (request_type_c.type != CB0R_UTF8)
-        return PROCESS_ERR;
-
-    ngx_str_t request_type;
-    if (parse_str(&request_type_c, 0, &request_type) != PARSE_OK)
-        return PROCESS_ERR;
-
-    ctx->request_type = request_type;
-
-    // Method name
-    cb0r_s method_name_c = get_map_key(&content, "method_name");
-    if (method_name_c.type != CB0R_UTF8)
-        return PROCESS_ERR;
-
-    ngx_str_t method_name;
-    if (parse_str(&method_name_c, 0, &method_name) != PARSE_OK)
-        return PROCESS_ERR;
-
-    ctx->method_name = method_name;
-
-    return PROCESS_OK;
+    s->data = NULL;
+    s->len = 0;
 }
-
-typedef enum
-{
-    CONSUME_OK = 0,
-    CONSUME_ERR,
-    CONSUME_EINFILE,
-    CONSUME_EEMPTY,
-} consume_result_t;
 
 static consume_result_t
 consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
@@ -190,12 +111,6 @@ consume_body(ngx_pool_t *p, ngx_chain_t *bufs, buf_t *buf)
     return CONSUME_OK;
 }
 
-static void nullify_str(ngx_str_t *s)
-{
-    s->data = NULL;
-    s->len = 0;
-}
-
 static ngx_http_cbor_req_ic_ctx_t *mk_ctx(ngx_http_request_t *r)
 {
     ngx_http_cbor_req_ic_ctx_t *ctx =
@@ -207,8 +122,21 @@ static ngx_http_cbor_req_ic_ctx_t *mk_ctx(ngx_http_request_t *r)
         if (ctx == NULL)
             return NULL;
 
+        // These are pointers to the request body and do not need separate allocation
         nullify_str(&ctx->method_name);
         nullify_str(&ctx->request_type);
+
+        // These are dynamically generated from CBOR BLOBs and need to be allocated
+        nullify_str(&ctx->canister_id);
+        nullify_str(&ctx->sender);
+
+        ctx->canister_id.data = ngx_pcalloc(r->pool, 64);
+        if (ctx->canister_id.data == NULL)
+            return NULL;
+
+        ctx->sender.data = ngx_pcalloc(r->pool, 64);
+        if (ctx->sender.data == NULL)
+            return NULL;
 
         ctx->done = 0;
 
@@ -232,6 +160,7 @@ process_request(ngx_http_request_t *r)
     if (ctx == NULL)
         return;
 
+    // We don't really care for the result
     if (process_body(b, ctx) != PROCESS_OK)
         return;
 }
@@ -266,6 +195,7 @@ ngx_http_cbor_req_ic_handler(ngx_http_request_t *r)
     return NGX_DONE;
 }
 
+// request_type is always present
 static ngx_int_t
 ngx_http_cbor_req_ic_cbor_ic_request_type(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
@@ -285,6 +215,27 @@ ngx_http_cbor_req_ic_cbor_ic_request_type(ngx_http_request_t *r, ngx_http_variab
     return NGX_OK;
 }
 
+// sender is always present
+static ngx_int_t
+ngx_http_cbor_req_ic_cbor_ic_sender(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
+{
+    ngx_http_cbor_req_ic_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_cbor_req_ic_module);
+    if (ctx == NULL)
+    {
+        v->not_found = 1;
+        return NGX_OK;
+    }
+
+    v->data = ctx->sender.data;
+    v->len = ctx->sender.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+
+    return NGX_OK;
+}
+
+// method_name is optional
 static ngx_int_t
 ngx_http_cbor_req_ic_cbor_ic_method_name(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
 {
@@ -297,6 +248,26 @@ ngx_http_cbor_req_ic_cbor_ic_method_name(ngx_http_request_t *r, ngx_http_variabl
 
     v->data = ctx->method_name.data;
     v->len = ctx->method_name.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+
+    return NGX_OK;
+}
+
+// canister_id is optional
+static ngx_int_t
+ngx_http_cbor_req_ic_cbor_ic_canister_id(ngx_http_request_t *r, ngx_http_variable_value_t *v, uintptr_t data)
+{
+    ngx_http_cbor_req_ic_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_cbor_req_ic_module);
+    if (ctx == NULL)
+    {
+        v->not_found = 1;
+        return NGX_OK;
+    }
+
+    v->data = ctx->canister_id.data;
+    v->len = ctx->canister_id.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;

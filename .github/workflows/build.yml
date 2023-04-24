@@ -21,11 +21,23 @@ jobs:
           curl -sLv --retry 5 https://nginx.org/download/nginx-1.21.3.tar.gz | gunzip | tar -x
           git clone https://github.com/vision5/ngx_devel_kit.git
 
-      - name: Build module so file
+      # This also creates headers needed for tests
+      - name: Configure nginx
         run: |
-          cd nginx-1.21.3
+          pushd nginx-1.21.3
           ./configure --with-compat \
             --add-dynamic-module=../ngx_devel_kit \
             --add-dynamic-module=../modules/ngx_http_cbor_input_module \
             --add-dynamic-module=../modules/ngx_http_cbor_ic_modules
+          popd
+
+      - name: Run tests
+        run: |
+          pushd modules/ngx_http_cbor_ic_modules
+          make NGINX_SRC=../../nginx-1.21.3
+          popd
+
+      - name: Build modules
+        run: |
+          cd nginx-1.21.3
           make modules
