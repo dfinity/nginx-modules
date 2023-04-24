@@ -160,8 +160,9 @@ process_request(ngx_http_request_t *r)
     if (ctx == NULL)
         return;
 
-    // We don't really care for the result for now
-    process_body(b, ctx);
+    // We don't really care for the result
+    if (process_body(b, ctx) != PROCESS_OK)
+        return;
 }
 
 void ngx_http_cbor_req_ic_body_init(ngx_http_request_t *r)

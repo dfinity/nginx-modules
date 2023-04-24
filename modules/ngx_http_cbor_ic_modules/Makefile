@@ -1,5 +1,3 @@
-# This is currently meant to be run manually and not in CI/CD
-#
 # Needs nginx source code path specified, e.g.
 # make NGINX_SRC=~/nginx-1.21.3
 
@@ -16,6 +14,6 @@ test_process_body:
 	@gcc -I ${NGINX_SRC}/src/os/unix -I ${NGINX_SRC}/src/core -I ${NGINX_SRC}/objs \
 	base32.c crc32.c identifier.c cb0r.c ic.c process_body.c process_body_test.c \
 	-o process_body_test
-	
+
 	@./process_body_test || (echo "TEST FAILED"; exit 1)
 	@rm -f process_body_test

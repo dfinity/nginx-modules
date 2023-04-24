@@ -42,7 +42,8 @@ int main()
 
     ngx_http_cbor_req_ic_ctx_t *ctx = test_mk_ctx();
 
-    process_body(b, ctx);
+    process_result_t res = process_body(b, ctx);
+    assert(res == PROCESS_OK);
     assert(strncmp(ctx->canister_id.data, "rrkah-fqaaa-aaaaa-aaaaq-cai", ctx->canister_id.len) == 0);
     assert(strncmp(ctx->sender.data, "2vxsx-fae", ctx->sender.len) == 0);
     assert(strncmp(ctx->method_name.data, "set", ctx->method_name.len) == 0);
@@ -52,7 +53,8 @@ int main()
     b.end = &cbor_request_query[118];
 
     ctx = test_mk_ctx();
-    process_body(b, ctx);
+    res = process_body(b, ctx);
+    assert(res == PROCESS_OK);
     assert(strncmp(ctx->canister_id.data, "z2rt2-eaaaa-aaaal-abcva-cai", ctx->canister_id.len) == 0);
     assert(strncmp(ctx->sender.data, "2vxsx-fae", ctx->sender.len) == 0);
     assert(strncmp(ctx->method_name.data, "butts", ctx->method_name.len) == 0);

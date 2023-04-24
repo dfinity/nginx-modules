@@ -7,4 +7,10 @@ typedef struct
     unsigned char *end;
 } buf_t;
 
-void process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx);
+typedef enum
+{
+    PROCESS_OK = 0,
+    PROCESS_ERR,
+} process_result_t;
+
+process_result_t process_body(buf_t b, ngx_http_cbor_req_ic_ctx_t *ctx);
