@@ -21,6 +21,8 @@ char src3[] = {
 
 char src4[] = {0xab, 0xcd, 0x01};
 
+char src5[] = {0x76, 0x77, 0x17, 0xc2, 0x98, 0x03, 0xe6, 0x5d, 0xae, 0x3c, 0x5d, 0xca, 0xe8, 0x92, 0x4a, 0x97, 0x83, 0xf6, 0xfc, 0x88, 0xe8, 0x54, 0x59, 0xf8, 0xc8, 0xd5, 0x45, 0xde, 0x02};
+
 void test_crc32()
 {
     unsigned int crc = ic_crc32("123456789", 9);
@@ -75,6 +77,11 @@ void test_identifier_encode()
     len = identifier_encode(src4, sizeof(src4), buf);
     assert(len == 14);
     assert(strcmp(buf, "em77e-bvlzu-aq") == 0);
+
+    ZERO(buf);
+    len = identifier_encode(src5, sizeof(src5), buf);
+    assert(len == 63);
+    assert(strcmp(buf, "tg57h-slwo4-l4fga-d4zo2-4pc5z-lujes-uxqp3-pzchi-krm7r-sgvix-pae") == 0);
 
     // Too long input yields empty string
     ZERO(buf);

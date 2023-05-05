@@ -66,12 +66,7 @@ cb0r_s get_map_key(cb0r_t r, char *key)
     if (r->count == CB0R_STREAM)
     {
         r->count = 0; // NOTE(or): Can this be removed? It's already done in `cb0r(...)`?
-        cb0r(
-            r->start + r->header, // start
-            r->end,               // stop
-            CB0R_STREAM,          // skip
-            r                     // result
-        );
+        cb0r_get(r, CB0R_STREAM, r);
     }
 
     // Search for key
@@ -85,12 +80,7 @@ cb0r_s get_map_key(cb0r_t r, char *key)
             continue;
 
         cb0r_s out = {0};
-        cb0r(
-            r->start + r->header, // start
-            r->end,               // stop
-            i + 1,                // skip
-            &out                  // result
-        );
+        cb0r_get(r, i + 1, &out);
 
         return out;
     }
