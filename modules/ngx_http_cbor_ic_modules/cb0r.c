@@ -279,7 +279,10 @@ l_finish: // only first 7 types
             if (count == CB0R_STREAM)
                 result->count = count;
             else
-                result->length = end - (start + 1);
+                // DFINITY:
+                // Fix bug that happens with blobs longer than 23 bytes
+                // The header is then 2+ bytes which was not taken into account
+                result->length = end - start - size - 1;
         }
         break;
 
